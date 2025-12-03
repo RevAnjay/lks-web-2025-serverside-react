@@ -6,12 +6,13 @@ import axios from "axios";
 function InstallmentShow() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [ installmentData, setInstallmentData ] = useState("");
-  const [ user, setUser ] = useState("");
-  const [ error, setError ] = useState("");
-  const [ message, setMessage ] = useState("");
-  const [ months, setMonths ] = useState("");
-  const [ notes, setNotes ] = useState("");
+  const [installmentData, setInstallmentData] = useState("");
+  const [user, setUser] = useState("");
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+  const [months, setMonths] = useState("");
+  const [notes, setNotes] = useState("");
+  console.log(months);
 
   useEffect(() => {
     if (!localStorage.getItem("token")) {
@@ -44,7 +45,6 @@ function InstallmentShow() {
       setUser(response.data);
     };
 
-
     fetchInstallment();
     fetchUser();
   }, []);
@@ -62,12 +62,14 @@ function InstallmentShow() {
       );
 
       if (response.data.status != "success") {
+        setMessage(null);
         setError(response.data.message);
       }
 
       localStorage.removeItem("token");
       navigate("/", { replace: true });
     } catch (err) {
+      setMessage(null);
       setError(err.message);
     }
   };
@@ -75,22 +77,27 @@ function InstallmentShow() {
   async function handleApply(e) {
     e.preventDefault();
 
-    const response = await axios.post("http://127.0.0.1:8000/api/v1/applications",
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:8000/api/v1/applications",
         {
-            'installment_id': installmentData.id,
-            'months': months,
-            'notes': notes,
+          installment_id: installmentData.id,
+          months: months,
+          notes: notes,
         },
         {
-            headers: {
-                Authorization: `Bearer ${localStorage.getItem("token")}`,
-            },
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         }
-    );
+      );
 
-    if (response.status != 200) setError(response.data.message);
-
-    setMessage("Installment application sent successfully");
+      setError(null);
+      setMessage("Installment application sent successfully");
+    } catch (err) {
+      setMessage(null);
+      setError(err.message);
+    }
   }
 
   return (
@@ -116,11 +123,18 @@ function InstallmentShow() {
             <ul class="navbar-nav ml-auto">
               <li class="nav-item">
                 <a class="nav-link" href="#">
-                  { user.name }
+                  {user.name}
                 </a>
               </li>
               <li class="nav-item">
-                <a class="nav-link" href="#" onClick={e => {e.preventDefault(); handleLogout()}}>
+                <a
+                  class="nav-link"
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleLogout();
+                  }}
+                >
                   Logout
                 </a>
               </li>
@@ -129,14 +143,16 @@ function InstallmentShow() {
         </div>
       </nav>
 
-        { error && <div class="alert alert-danger">{error}</div> }
-        { message && <div class="alert alert-success">{message}</div> }
       <main>
         <header class="jumbotron">
+          {error && <div class="alert alert-danger">{error}</div>}
+          {message && <div class="alert alert-success">{message}</div>}
           <div class="container text-center">
             <div>
-              <h1 class="display-4">{ installmentData.cars }</h1>
-              <span class="text-muted">Brand : { installmentData.brand_name }</span>
+              <h1 class="display-4">{installmentData.cars}</h1>
+              <span class="text-muted">
+                Brand : {installmentData.brand_name}
+              </span>
             </div>
           </div>
         </header>
@@ -146,14 +162,16 @@ function InstallmentShow() {
             <div class="col-md-12">
               <div class="form-group">
                 <h3>Description</h3>
-                { installmentData.description }
+                {installmentData.description}
               </div>
             </div>
             <div class="col-md-12">
               <div class="form-group">
                 <h3>
                   Price :{" "}
-                  <span class="badge badge-primary">Rp. { installmentData.price }</span>
+                  <span class="badge badge-primary">
+                    Rp. {installmentData.price}
+                  </span>
                 </h3>
               </div>
             </div>
@@ -163,10 +181,19 @@ function InstallmentShow() {
             <div class="col-md-12">
               <div class="form-group">
                 <h3>Select Months</h3>
-                <select name="months" class="form-control" onChange={e => setMonths(e.target.value)}>
-                { installmentData.available_months && installmentData.available_months.map((month) => (
-                  <option value={ month.id } key={ month.id }>{ month.month } Months</option>
-                )) }
+                <select
+                  name="months"
+                  class="form-control"
+                  onChange={(e) => setMonths(parseInt(e.target.value))}
+                  value={months}
+                >
+                  <option value="">-- Select Months --</option>
+                  {installmentData.available_months &&
+                    installmentData.available_months.map((month) => (
+                      <option value={month.id} key={month.id}>
+                        {month.month} Months
+                      </option>
+                    ))}
                 </select>
               </div>
             </div>
@@ -174,7 +201,9 @@ function InstallmentShow() {
               <div class="form-group">
                 <h3>
                   Nominal/Month :{" "}
-                  <span class="badge badge-primary">Rp. { installmentData.price }</span>
+                  <span class="badge badge-primary">
+                    Rp. {installmentData.price}
+                  </span>
                 </h3>
               </div>
             </div>
@@ -189,15 +218,17 @@ function InstallmentShow() {
                   cols="30"
                   rows="6"
                   placeholder="Explain why your installment should be approved"
-                  value={ notes }
-                  onChange={e => setNotes(e.target.value)}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
                 ></textarea>
               </div>
             </div>
             <div class="col-md-12">
               <div class="form-group">
                 <div class="d-flex align-items-center mb-3">
-                  <button class="btn btn-primary btn-lg" type="submit">Apply</button>
+                  <button class="btn btn-primary btn-lg" type="submit">
+                    Apply
+                  </button>
                 </div>
               </div>
             </div>
