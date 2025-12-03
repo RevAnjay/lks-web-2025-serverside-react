@@ -1,12 +1,56 @@
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import axios from "axios";
+
 function CreateValidation() {
-    const handleCreate = async () => {
-        
+  const [job, setJob] = useState("");
+  const [jobDescription, setJobDescription] = useState("");
+  const [income, setIncome] = useState("");
+  const [reason, setReason] = useState("");
+  const navigate = useNavigate();
+  const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
+
+  const location = useLocation();
+
+  useEffect(() => {
+    if (!localStorage.getItem("token")) {
+      navigate("/", { replace: true });
     }
+  }, []);
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+
+    setError("");
+
+    try {
+      const response = await axios.post("http://127.0.0.1:8000/api/v1/validation",
+        {
+          job: job,
+          job_description: jobDescription,
+          income: income,
+          reason_accepted: reason,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        }
+      );
+
+      if (response.status != 200) setError(response.data.message);
+
+      setMessage("Validation request sent successfully");
+    } catch (err) {
+      setError(err.message);
+    }
+  };
   return (
     <div>
       <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-primary">
         <div class="container">
-          <a class="navbar-brand" href="#">
+          <a class="navbar-brand" href="/dashboard">
             Installment Cars
           </a>
           <button
@@ -40,8 +84,11 @@ function CreateValidation() {
           </div>
         </header>
 
+        {error && <div class="alert alert-danger">{error}</div>}
+        {message && <div class="alert alert-success">{message}</div>}
+
         <div class="container">
-          <form action="">
+          <form onSubmit={handleCreate}>
             <div class="row mb-4">
               <div class="col-md-6">
                 <div class="form-group">
@@ -56,17 +103,23 @@ function CreateValidation() {
                     type="text"
                     placeholder="Your Job"
                     class="form-control mt-2 mb-2"
+                    value={job}
+                    onChange={(e) => setJob(e.target.value)}
                   ></input>
                   <textarea
                     class="form-control"
                     cols="30"
                     rows="5"
                     placeholder="describe what you do in your job"
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
                   ></textarea>
                   <input
                     type="number"
                     placeholder="Income (Rp)"
                     class="form-control mt-2"
+                    value={income}
+                    onChange={(e) => setIncome(e.target.value)}
                   ></input>
                 </div>
               </div>
@@ -81,12 +134,16 @@ function CreateValidation() {
                     cols="30"
                     rows="6"
                     placeholder="Explain why you should be accepted"
+                    value={reason}
+                    onChange={(e) => setReason(e.target.value)}
                   ></textarea>
                 </div>
               </div>
             </div>
 
-            <button class="btn btn-primary">Send Request</button>
+            <button class="btn btn-primary" type="submit">
+              Send Request
+            </button>
           </form>
         </div>
       </main>

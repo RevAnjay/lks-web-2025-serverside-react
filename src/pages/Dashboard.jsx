@@ -77,11 +77,15 @@ function Dashboard() {
     }
   };
 
+  const moveCreateValidation = () => {
+    navigate("/dashboard/validation", { state: { user: user }, replace: true });
+  };
+
   return (
     <div>
       <nav className="navbar navbar-expand-md navbar-dark fixed-top bg-primary">
         <div className="container">
-          <a className="navbar-brand" href="#">
+          <a className="navbar-brand" href="/dashboard">
             Installment Cars
           </a>
           <button
@@ -135,7 +139,7 @@ function Dashboard() {
                     <h5 className="mb-0">Data Validation</h5>
                   </div>
                   <div className="card-body">
-                    <a href="/dashboard/validation" className="btn btn-primary btn-block">
+                    <a href="" onClick={e => {e.preventDefault(); moveCreateValidation();}} className="btn btn-primary btn-block">
                       + Request validation
                     </a>
                   </div>
@@ -189,7 +193,7 @@ function Dashboard() {
                   </h4>
                 </div>
                 <div className="col-md-4">
-                  <a href="" className="btn btn-primary btn-lg btn-block">
+                  <a href="" onClick={e => navigate("/dashboard/installment")} className="btn btn-primary btn-lg btn-block">
                     + Add Installment Cars
                   </a>
                 </div>
